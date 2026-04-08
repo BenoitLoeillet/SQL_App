@@ -97,7 +97,7 @@
   <main class="main">
     <div class="config-banner" id="config-banner">
       <div class="config-dot"></div>
-      You have access to the databases stored on SUPABASE
+      Replace SUPABASE_URL and ANON_KEY in the source code.
     </div>
     <div class="label">SQL Query</div>
     <textarea id="sql-input" placeholder="SELECT * FROM customers LIMIT 10;" spellcheck="false" autocomplete="off"></textarea>
@@ -121,8 +121,11 @@
 </div>
 
 <script>
-var SUPABASE_URL = 'https://bzhuntwymdoceujuvyhi.supabase.co';
-var ANON_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M';
+var DATABASES = {
+  'Boutique':     { url: 'https://bzhuntwymdoceujuvyhi.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M' },
+  'Bikeshare':    { url: 'https://ujwueqekzsnigsmdasma.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd3VlcWVrenNuaWdzbWRhc21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDM5MTEsImV4cCI6MjA5MTIxOTkxMX0.OLQlqa0Q3JcIxmgTqw3I3ifTfMZc8lGJTPbiTCtZb98' },
+  'Movies':       { url: 'https://CCC.supabase.co', key: '...' }
+};
 var COURSE_LABEL = 'Databases & SQL';
 
 var configured = (SUPABASE_URL.indexOf('VOTRE_ID') === -1 && ANON_KEY.indexOf('VOTRE_ANON_KEY') === -1);
@@ -169,12 +172,18 @@ function rpc(query) {
 
 function loadSchema() {
   if (!configured) return;
-  rpc(
-    "SELECT table_name, column_name, data_type " +
-    "FROM information_schema.columns " +
-    "WHERE table_schema = 'public' " +
-    "ORDER BY table_name, ordinal_position"
-  ).then(function(rows) {
+  fetch(SUPABASE_URL + '/rest/v1/rpc/get_schema', {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        ANON_KEY,
+      'Authorization': 'Bearer ' + ANON_KEY
+    },
+    body: JSON.stringify({})
+  }).then(function(res) {
+    if (!res.ok) return res.json().then(function(e) { throw new Error(e.message || 'Erreur HTTP ' + res.status); });
+    return res.json();
+  }).then(function(rows) {
     var tables = {};
     (rows || []).forEach(function(r) {
       if (!tables[r.table_name]) tables[r.table_name] = [];
@@ -263,90 +272,32 @@ function insertColName(colName) {
 }
 
 function runQuery() {
-  var input = document.getElementById('sql-input').value;
-
-  // Découper sur ";" et ignorer les morceaux vides
-  var queries = input.split(';')
-    .map(function(q) { return q.trim(); })
-    .filter(function(q) { return q.length > 0; });
-
-  if (queries.length === 0) return;
-
+  var query = document.getElementById('sql-input').value.trim();
+  if (!query) return;
   var btn = document.getElementById('btn-run');
-  btn.classList.add('loading');
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="16" stroke-dashoffset="8"><animateTransform attributeName="transform" type="rotate" from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> Execution...';
+  var t0  = performance.now();
 
+  btn.classList.add('loading');
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="16" stroke-dashoffset="8"><animateTransform attributeName="transform" type="rotate" from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> Running...';
   document.getElementById('status-bar').className = 'status-bar hidden';
   document.getElementById('results-section').style.display = 'none';
   document.getElementById('hint-time').textContent = '';
 
-  // Vider les résultats précédents
-  var resultsSection = document.getElementById('results-section');
-  resultsSection.innerHTML = '';
-
-  var t0 = performance.now();
-
-  // Exécuter les requêtes en séquence
-  var chain = Promise.resolve();
-  queries.forEach(function(query, index) {
-    chain = chain.then(function() {
-      return rpc(query).then(function(rows) {
-        var arr = Array.isArray(rows) ? rows : [];
-
-        // Créer un bloc résultat par requête
-        var block = document.createElement('div');
-        block.style.marginBottom = '1.5rem';
-
-        var label = document.createElement('div');
-        label.className = 'results-label';
-        label.innerHTML =
-          'Query ' + (index + 1) +
-          ' <span class="results-count">— ' + arr.length + ' row' + (arr.length !== 1 ? 's' : '') + '</span>';
-        block.appendChild(label);
-
-        if (arr.length === 0) {
-          var msg = document.createElement('div');
-          msg.className = 'status-bar success';
-          msg.style.marginBottom = '0';
-          msg.textContent = 'Query executed — no results returned.';
-          block.appendChild(msg);
-        } else {
-          var wrap = document.createElement('div');
-          wrap.className = 'table-wrap';
-          var keys = Object.keys(arr[0]);
-          wrap.innerHTML =
-            '<table><thead><tr>' + keys.map(function(k){ return '<th>' + esc(k) + '</th>'; }).join('') + '</tr></thead>' +
-            '<tbody>' + arr.map(function(row) {
-              return '<tr>' + keys.map(function(k) {
-                var v = row[k];
-                if (v === null || v === undefined) return '<td class="null-val">null</td>';
-                if (typeof v === 'number') return '<td class="num-val">' + v + '</td>';
-                if (typeof v === 'object') return '<td>' + esc(JSON.stringify(v)) + '</td>';
-                return '<td>' + esc(String(v)) + '</td>';
-              }).join('') + '</tr>';
-            }).join('') + '</tbody></table>';
-          block.appendChild(wrap);
-        }
-
-        resultsSection.appendChild(block);
-        resultsSection.style.display = 'block';
-
-      }).catch(function(e) {
-        var block = document.createElement('div');
-        block.style.marginBottom = '1rem';
-        var msg = document.createElement('div');
-        msg.className = 'status-bar error';
-        msg.textContent = 'Query ' + (index + 1) + ': ' + e.message;
-        block.appendChild(msg);
-        resultsSection.appendChild(block);
-        resultsSection.style.display = 'block';
-      });
-    });
-  });
-
-  chain.finally(function() {
+  rpc(query).then(function(rows) {
     var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
     document.getElementById('hint-time').textContent = elapsed + 's';
+    var arr = Array.isArray(rows) ? rows : [];
+    if (arr.length === 0) {
+      setStatus('success', 'Query executed - no results returned.');
+    } else {
+      renderTable(arr);
+      document.getElementById('results-count').textContent = '- ' + arr.length + ' row' + (arr.length > 1 ? 's' : '');
+      document.getElementById('results-section').style.display = 'block';
+      document.getElementById('status-bar').className = 'status-bar hidden';
+    }
+  }).catch(function(e) {
+    setStatus('error', e.message);
+  }).finally(function() {
     btn.classList.remove('loading');
     btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill="currentColor"/></svg> Run';
   });
