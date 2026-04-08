@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Éditeur SQL</title>
+  <title>SQL Editor</title>
   <style>
     :root {
       --bg:#f7f6f3;--surface:#fff;--surface2:#f0efe9;--border:#e0ddd5;--border2:#c8c5bc;
@@ -25,14 +25,26 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
-    .topbar{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:.5px solid var(--border);background:var(--surface);flex-shrink:0;}
+
+    /* topbar */
+    .topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:.5px solid var(--border);background:var(--surface);flex-shrink:0;}
     .dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;}
     .topbar-title{font-size:14px;font-weight:600;}
-    .topbar-sub{font-size:12px;color:var(--text2);margin-left:auto;}
+    .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .topbar-sub{font-size:12px;color:var(--text2);}
+    .lang-switch{display:flex;border:.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;font-size:12px;}
+    .lang-btn{padding:4px 10px;background:transparent;border:none;cursor:pointer;color:var(--text2);font-family:var(--sans);font-size:12px;}
+    .lang-btn:hover{background:var(--surface2);}
+    .lang-btn.active{background:var(--surface2);color:var(--text);font-weight:500;}
+
+    /* layout */
     .layout{display:flex;flex:1;overflow:hidden;}
+
+    /* sidebar */
     .sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:.5px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px 0;}
     .sidebar-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:0 14px 8px;}
-    .sidebar-loading{font-size:12px;color:var(--text3);padding:0 14px;font-style:italic;}
+    .sidebar-msg{font-size:12px;color:var(--text3);padding:0 14px;font-style:italic;}
+    .sidebar-error{font-size:12px;color:var(--red-txt);padding:0 14px;}
     .table-name{display:flex;align-items:center;gap:7px;padding:6px 14px;font-size:12.5px;font-weight:500;color:var(--text);cursor:pointer;user-select:none;}
     .table-name:hover{background:var(--surface2);}
     .table-icon{font-size:10px;color:var(--text3);transition:transform .15s;flex-shrink:0;}
@@ -46,6 +58,8 @@
     .col-type{font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;}
     .btn-select-all{display:block;margin:4px 14px 2px;padding:4px 8px;font-size:11px;font-family:var(--mono);background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius);color:var(--text2);cursor:pointer;text-align:left;width:calc(100% - 28px);}
     .btn-select-all:hover{color:var(--text);border-color:var(--border2);}
+
+    /* main */
     .main{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;}
     .config-banner{display:flex;align-items:center;gap:10px;background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius);padding:9px 13px;margin-bottom:1.25rem;font-size:12px;font-family:var(--mono);color:var(--text2);}
     .config-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;}
@@ -60,22 +74,31 @@
     .btn-clear{padding:7px 13px;font-size:13px;font-family:var(--sans);background:transparent;border:none;color:var(--text2);cursor:pointer;border-radius:var(--radius);}
     .btn-clear:hover{background:var(--surface2);color:var(--text);}
     .hint-time{font-size:12px;color:var(--text3);margin-left:auto;font-family:var(--mono);}
+
+    /* tabs */
+    .tabs-section{display:none;}
+    .tabs-bar{display:flex;border-bottom:.5px solid var(--border);margin-bottom:0;gap:0;overflow-x:auto;}
+    .tab-btn{padding:7px 16px;font-size:12px;font-family:var(--sans);background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text2);cursor:pointer;white-space:nowrap;margin-bottom:-0.5px;}
+    .tab-btn:hover{color:var(--text);}
+    .tab-btn.active{color:var(--text);border-bottom-color:var(--green);font-weight:500;}
+    .tab-panel{display:none;padding-top:12px;}
+    .tab-panel.active{display:block;}
+
+    /* results table */
     .status-bar{font-size:13px;padding:8px 13px;border-radius:var(--radius);margin-bottom:1rem;border:.5px solid transparent;}
     .status-bar.hidden{display:none;}
     .status-bar.error{background:var(--red-bg);border-color:var(--red-bd);color:var(--red-txt);}
     .status-bar.success{background:var(--green-bg);border-color:var(--green-bd);color:var(--green-txt);}
-    .results-section{display:none;margin-bottom:1.5rem;}
-    .results-label{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-    .results-count{font-weight:400;}
-    .table-wrap{overflow-x:auto;border:.5px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);}
+    .table-wrap{overflow-x:auto;overflow-y:auto;max-height:320px;border:.5px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);}
     table{width:100%;border-collapse:collapse;font-size:13px;}
     thead tr{border-bottom:.5px solid var(--border2);}
-    th{text-align:left;padding:8px 13px;font-size:10px;font-weight:700;color:var(--text2);background:var(--surface2);white-space:nowrap;letter-spacing:.04em;}
+    th{position:sticky;top:0;z-index:1;text-align:left;padding:8px 13px;font-size:10px;font-weight:700;color:var(--text2);background:var(--surface2);white-space:nowrap;letter-spacing:.04em;}
     td{padding:8px 13px;color:var(--text);border-bottom:.5px solid var(--border);}
     tr:last-child td{border-bottom:none;}
     tr:hover td{background:var(--surface2);}
     td.null-val{color:var(--text3);font-style:italic;}
     td.num-val{font-family:var(--mono);font-size:12px;}
+
     .footer{font-size:11px;color:var(--text3);text-align:center;padding:12px;border-top:.5px solid var(--border);margin-top:auto;}
     @media(max-width:600px){.sidebar{display:none;}}
   </style>
@@ -84,104 +107,175 @@
 
 <div class="topbar">
   <div class="dot"></div>
-  <span class="topbar-title">SQL Editor</span>
-  <span class="topbar-sub" id="course-label"></span>
+  <span class="topbar-title" id="t-title">SQL Editor</span>
+  <div class="topbar-right">
+    <span class="topbar-sub" id="course-label"></span>
+    <div class="lang-switch">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('fr')">FR</button>
+    </div>
+  </div>
 </div>
 
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-label">Tables</div>
-    <div class="sidebar-loading" id="sidebar-loading">Loading...</div>
+    <div class="sidebar-label" id="t-tables">Tables</div>
+    <div class="sidebar-msg" id="sidebar-loading">Loading...</div>
     <div id="schema-list"></div>
   </aside>
   <main class="main">
     <div class="config-banner" id="config-banner">
       <div class="config-dot"></div>
-      Replace SUPABASE_URL and ANON_KEY in the source code.
+      <span id="t-config">Replace SUPABASE_URL and ANON_KEY in the source code.</span>
     </div>
-    <div class="label">SQL Query</div>
-    <textarea id="sql-input" placeholder="SELECT * FROM customers LIMIT 10;" spellcheck="false" autocomplete="off"></textarea>
+    <div class="label" id="t-query-label">SQL Query</div>
+    <textarea id="sql-input" spellcheck="false" autocomplete="off"></textarea>
     <div class="btn-row">
       <button class="btn-run" id="btn-run" onclick="runQuery()">
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill="currentColor"/></svg>
-        Run
+        <span id="t-run">Run</span>
       </button>
-      <button class="btn-clear" onclick="clearAll()">Clear</button>
+      <button class="btn-clear" onclick="clearAll()" id="t-clear">Clear</button>
       <span class="hint-time" id="hint-time"></span>
     </div>
-    <div class="status-bar hidden" id="status-bar"></div>
-    <div class="results-section" id="results-section">
-      <div class="results-label">Results <span class="results-count" id="results-count"></span></div>
-      <div class="table-wrap">
-        <table><thead id="results-head"></thead><tbody id="results-body"></tbody></table>
-      </div>
+
+    <div class="tabs-section" id="tabs-section">
+      <div class="tabs-bar" id="tabs-bar"></div>
+      <div id="tabs-content"></div>
     </div>
-    <div class="footer">Only SELECT queries are allowed &nbsp;.&nbsp; Ctrl+Enter to run</div>
+
+    <div class="footer" id="t-footer">Only SELECT queries are allowed &nbsp;·&nbsp; Ctrl+Enter to run</div>
   </main>
 </div>
 
 <script>
+/* ══ CONFIGURATION ═══════════════════════════════════════════
+   Supabase → Settings → API                                  */
 var DATABASES = {
   'Boutique':     { url: 'https://bzhuntwymdoceujuvyhi.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M' },
   'Bikeshare':    { url: 'https://ujwueqekzsnigsmdasma.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd3VlcWVrenNuaWdzbWRhc21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDM5MTEsImV4cCI6MjA5MTIxOTkxMX0.OLQlqa0Q3JcIxmgTqw3I3ifTfMZc8lGJTPbiTCtZb98' },
   'Movies':       { url: 'https://CCC.supabase.co', key: '...' }
 };
 var COURSE_LABEL = 'Databases & SQL';
-
 var configured = (SUPABASE_URL.indexOf('VOTRE_ID') === -1 && ANON_KEY.indexOf('VOTRE_ANON_KEY') === -1);
+/* ═══════════════════════════════════════════════════════════ */
 
+/* ── i18n ─────────────────────────────────────────────────── */
+var LANG = 'en';
+var I18N = {
+  en: {
+    title:        'SQL Editor',
+    tables:       'Tables',
+    loading:      'Loading...',
+    noTables:     'No tables found.',
+    config:       'Replace SUPABASE_URL and ANON_KEY in the source code.',
+    configReq:    'Configuration required.',
+    queryLabel:   'SQL Query',
+    placeholder:  'SELECT * FROM customers LIMIT 10;',
+    run:          'Run',
+    running:      'Running...',
+    clear:        'Clear',
+    footer:       'Only SELECT queries are allowed \u00a0·\u00a0 Ctrl+Enter to run',
+    results:      'Query',
+    rows:         function(n){ return n + ' row' + (n !== 1 ? 's' : ''); },
+    noResults:    'Query executed — no results returned.',
+    schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.'
+  },
+  fr: {
+    title:        'Éditeur SQL',
+    tables:       'Tables',
+    loading:      'Chargement...',
+    noTables:     'Aucune table trouvée.',
+    config:       'Remplacer SUPABASE_URL et ANON_KEY dans le code source.',
+    configReq:    'Configuration requise.',
+    queryLabel:   'Requête SQL',
+    placeholder:  'SELECT * FROM customers LIMIT 10;',
+    run:          'Exécuter',
+    running:      'Exécution...',
+    clear:        'Effacer',
+    footer:       'Seules les requêtes SELECT sont autorisées \u00a0·\u00a0 Ctrl+Entrée pour exécuter',
+    results:      'Requête',
+    rows:         function(n){ return n + ' ligne' + (n !== 1 ? 's' : ''); },
+    noResults:    'Requête exécutée — aucun résultat retourné.',
+    schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.'
+  }
+};
+
+function t(key){ return I18N[LANG][key]; }
+
+function setLang(lang) {
+  LANG = lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent === lang.toUpperCase());
+  });
+  applyLang();
+}
+
+function applyLang() {
+  document.getElementById('t-title').textContent       = t('title');
+  document.getElementById('t-tables').textContent      = t('tables');
+  document.getElementById('t-query-label').textContent = t('queryLabel');
+  document.getElementById('t-run').textContent         = t('run');
+  document.getElementById('t-clear').textContent       = t('clear');
+  document.getElementById('t-footer').innerHTML        = t('footer');
+  document.getElementById('t-config').textContent      = t('config');
+  document.getElementById('sql-input').placeholder     = t('placeholder');
+  document.title = t('title');
+
+  var sl = document.getElementById('sidebar-loading');
+  if (sl.style.display !== 'none') sl.textContent = t('loading');
+}
+
+/* ── Init ─────────────────────────────────────────────────── */
+var configured = (SUPABASE_URL.indexOf('VOTRE_ID') === -1 && ANON_KEY.indexOf('VOTRE_ANON_KEY') === -1);
 document.getElementById('course-label').textContent = COURSE_LABEL;
 if (configured) {
   document.getElementById('config-banner').style.display = 'none';
 } else {
-  document.getElementById('sidebar-loading').textContent = 'Configuration required.';
+  document.getElementById('sidebar-loading').textContent = t('configReq');
 }
+applyLang();
 
+/* ── Helpers ──────────────────────────────────────────────── */
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function shortType(t) {
+function shortType(t2) {
   var m = {
     'integer':'int','bigint':'bigint','smallint':'int','numeric':'num','real':'float',
     'double precision':'float','character varying':'varchar','character':'char','text':'text',
     'boolean':'bool','date':'date','timestamp without time zone':'timestamp',
     'timestamp with time zone':'timestamptz','uuid':'uuid','json':'json','jsonb':'jsonb'
   };
-  return m[t] || t.split(' ')[0].substring(0,8);
+  return m[t2] || t2.split(' ')[0].substring(0,8);
 }
 
+/* ── RPC ──────────────────────────────────────────────────── */
 function rpc(query) {
   return fetch(SUPABASE_URL + '/rest/v1/rpc/run_student_query', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        ANON_KEY,
-      'Authorization': 'Bearer ' + ANON_KEY
-    },
+    headers: { 'Content-Type':'application/json','apikey':ANON_KEY,'Authorization':'Bearer '+ANON_KEY },
     body: JSON.stringify({ query: query })
   }).then(function(res) {
-    if (!res.ok) {
-      return res.json().catch(function(){ return {}; }).then(function(err) {
-        throw new Error(err.message || err.hint || 'Erreur HTTP ' + res.status);
-      });
-    }
+    if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
     return res.json();
   });
 }
 
+/* ── Schema sidebar ───────────────────────────────────────── */
 function loadSchema() {
   if (!configured) return;
+  var loading = document.getElementById('sidebar-loading');
+  loading.textContent = t('loading');
+  loading.className = 'sidebar-msg';
+  loading.style.display = 'block';
+
   fetch(SUPABASE_URL + '/rest/v1/rpc/get_schema', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        ANON_KEY,
-      'Authorization': 'Bearer ' + ANON_KEY
-    },
+    headers: { 'Content-Type':'application/json','apikey':ANON_KEY,'Authorization':'Bearer '+ANON_KEY },
     body: JSON.stringify({})
   }).then(function(res) {
-    if (!res.ok) return res.json().then(function(e) { throw new Error(e.message || 'Erreur HTTP ' + res.status); });
+    if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
     return res.json();
   }).then(function(rows) {
     var tables = {};
@@ -190,19 +284,19 @@ function loadSchema() {
       tables[r.table_name].push({ name: r.column_name, type: r.data_type });
     });
 
-    var list    = document.getElementById('schema-list');
-    var loading = document.getElementById('sidebar-loading');
+    var list = document.getElementById('schema-list');
+    list.innerHTML = '';
     loading.style.display = 'none';
 
     if (Object.keys(tables).length === 0) {
-      loading.textContent = 'No tables found.';
+      loading.textContent = t('noTables');
       loading.style.display = 'block';
       return;
     }
 
     Object.keys(tables).forEach(function(tname) {
-      var cols   = tables[tname];
-      var entry  = document.createElement('div');
+      var cols  = tables[tname];
+      var entry = document.createElement('div');
       entry.className = 'table-entry';
 
       var header = document.createElement('div');
@@ -221,10 +315,10 @@ function loadSchema() {
       var quickBtn = document.createElement('button');
       quickBtn.className = 'btn-select-all';
       quickBtn.textContent = 'SELECT * FROM ' + tname + ' LIMIT 10';
-      (function(t) {
+      (function(tn) {
         quickBtn.onclick = function(e) {
           e.stopPropagation();
-          document.getElementById('sql-input').value = 'SELECT *\nFROM ' + t + '\nLIMIT 10;';
+          document.getElementById('sql-input').value = 'SELECT *\nFROM ' + tn + '\nLIMIT 10;';
           runQuery();
         };
       })(tname);
@@ -233,21 +327,16 @@ function loadSchema() {
       cols.forEach(function(col) {
         var colRow = document.createElement('div');
         colRow.className = 'col-row';
-        colRow.innerHTML =
-          '<span class="col-name">' + esc(col.name) + '</span>' +
-          '<span class="col-type">' + esc(shortType(col.type)) + '</span>';
+        colRow.innerHTML = '<span class="col-name">'+esc(col.name)+'</span><span class="col-type">'+esc(shortType(col.type))+'</span>';
         colRow.title = col.type;
-        (function(n) {
-          colRow.onclick = function() { insertColName(n); };
-        })(col.name);
+        (function(n){ colRow.onclick = function(){ insertColName(n); }; })(col.name);
         colsDiv.appendChild(colRow);
       });
 
       (function(h, c) {
         h.onclick = function() {
-          var icon   = h.querySelector('.table-icon');
           var isOpen = c.classList.toggle('open');
-          icon.classList.toggle('open', isOpen);
+          h.querySelector('.table-icon').classList.toggle('open', isOpen);
         };
       })(header, colsDiv);
 
@@ -255,11 +344,11 @@ function loadSchema() {
       entry.appendChild(colsDiv);
       list.appendChild(entry);
     });
-
   }).catch(function(e) {
-    var loading = document.getElementById('sidebar-loading');
-    loading.textContent = 'Error: ' + e.message;
+    loading.className = 'sidebar-error';
+    loading.textContent = t('schemaErr');
     loading.style.display = 'block';
+    console.error('get_schema error:', e.message);
   });
 }
 
@@ -271,66 +360,101 @@ function insertColName(colName) {
   ta.focus();
 }
 
+/* ── Run query ────────────────────────────────────────────── */
 function runQuery() {
-  var query = document.getElementById('sql-input').value.trim();
-  if (!query) return;
-  var btn = document.getElementById('btn-run');
-  var t0  = performance.now();
+  var input = document.getElementById('sql-input').value;
+  var queries = input.split(';').map(function(q){ return q.trim(); }).filter(function(q){ return q.length > 0; });
+  if (queries.length === 0) return;
 
+  var btn = document.getElementById('btn-run');
   btn.classList.add('loading');
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="16" stroke-dashoffset="8"><animateTransform attributeName="transform" type="rotate" from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> Running...';
-  document.getElementById('status-bar').className = 'status-bar hidden';
-  document.getElementById('results-section').style.display = 'none';
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="16" stroke-dashoffset="8"><animateTransform attributeName="transform" type="rotate" from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> ' + t('running');
+
+  var tabsSection = document.getElementById('tabs-section');
+  var tabsBar     = document.getElementById('tabs-bar');
+  var tabsContent = document.getElementById('tabs-content');
+  tabsSection.style.display = 'none';
+  tabsBar.innerHTML = '';
+  tabsContent.innerHTML = '';
   document.getElementById('hint-time').textContent = '';
 
-  rpc(query).then(function(rows) {
+  var t0 = performance.now();
+  var chain = Promise.resolve();
+  var panels = [];
+
+  queries.forEach(function(query, index) {
+    chain = chain.then(function() {
+      return rpc(query).then(function(rows) {
+        var arr = Array.isArray(rows) ? rows : [];
+        panels.push({ index: index, arr: arr, error: null });
+      }).catch(function(e) {
+        panels.push({ index: index, arr: [], error: e.message });
+      });
+    });
+  });
+
+  chain.then(function() {
     var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
     document.getElementById('hint-time').textContent = elapsed + 's';
-    var arr = Array.isArray(rows) ? rows : [];
-    if (arr.length === 0) {
-      setStatus('success', 'Query executed - no results returned.');
-    } else {
-      renderTable(arr);
-      document.getElementById('results-count').textContent = '- ' + arr.length + ' row' + (arr.length > 1 ? 's' : '');
-      document.getElementById('results-section').style.display = 'block';
-      document.getElementById('status-bar').className = 'status-bar hidden';
-    }
-  }).catch(function(e) {
-    setStatus('error', e.message);
-  }).finally(function() {
+
+    panels.forEach(function(p, i) {
+      var tabBtn = document.createElement('button');
+      tabBtn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+      tabBtn.textContent = t('results') + ' ' + (p.index + 1) + (p.error ? ' ⚠' : ' (' + t('rows')(p.arr.length) + ')');
+      (function(idx) {
+        tabBtn.onclick = function() {
+          document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+          document.querySelectorAll('.tab-panel').forEach(function(b){ b.classList.remove('active'); });
+          tabBtn.classList.add('active');
+          document.getElementById('tab-panel-' + idx).classList.add('active');
+        };
+      })(i);
+      tabsBar.appendChild(tabBtn);
+
+      var panel = document.createElement('div');
+      panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
+      panel.id = 'tab-panel-' + i;
+
+      if (p.error) {
+        panel.innerHTML = '<div class="status-bar error">' + esc(p.error) + '</div>';
+      } else if (p.arr.length === 0) {
+        panel.innerHTML = '<div class="status-bar success">' + t('noResults') + '</div>';
+      } else {
+        var keys = Object.keys(p.arr[0]);
+        panel.innerHTML =
+          '<div class="table-wrap"><table>' +
+          '<thead><tr>' + keys.map(function(k){ return '<th>'+esc(k)+'</th>'; }).join('') + '</tr></thead>' +
+          '<tbody>' + p.arr.map(function(row) {
+            return '<tr>' + keys.map(function(k) {
+              var v = row[k];
+              if (v === null || v === undefined) return '<td class="null-val">null</td>';
+              if (typeof v === 'number') return '<td class="num-val">'+v+'</td>';
+              if (typeof v === 'object') return '<td>'+esc(JSON.stringify(v))+'</td>';
+              return '<td>'+esc(String(v))+'</td>';
+            }).join('') + '</tr>';
+          }).join('') +
+          '</tbody></table></div>';
+      }
+      tabsContent.appendChild(panel);
+    });
+
+    tabsSection.style.display = 'block';
+
     btn.classList.remove('loading');
-    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill="currentColor"/></svg> Run';
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill="currentColor"/></svg> <span id="t-run">'+t('run')+'</span>';
   });
-}
-
-function setStatus(type, msg) {
-  var el = document.getElementById('status-bar');
-  el.className = 'status-bar ' + type;
-  el.textContent = msg;
-}
-
-function renderTable(rows) {
-  var keys = Object.keys(rows[0]);
-  document.getElementById('results-head').innerHTML = '<tr>' + keys.map(function(k){ return '<th>' + esc(k) + '</th>'; }).join('') + '</tr>';
-  document.getElementById('results-body').innerHTML = rows.map(function(row) {
-    return '<tr>' + keys.map(function(k) {
-      var v = row[k];
-      if (v === null || v === undefined) return '<td class="null-val">null</td>';
-      if (typeof v === 'number') return '<td class="num-val">' + v + '</td>';
-      if (typeof v === 'object') return '<td>' + esc(JSON.stringify(v)) + '</td>';
-      return '<td>' + esc(String(v)) + '</td>';
-    }).join('') + '</tr>';
-  }).join('');
 }
 
 function clearAll() {
   document.getElementById('sql-input').value = '';
-  document.getElementById('status-bar').className = 'status-bar hidden';
-  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('tabs-section').style.display = 'none';
+  document.getElementById('tabs-bar').innerHTML = '';
+  document.getElementById('tabs-content').innerHTML = '';
   document.getElementById('hint-time').textContent = '';
   document.getElementById('sql-input').focus();
 }
 
+/* ── Keyboard ─────────────────────────────────────────────── */
 document.getElementById('sql-input').addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); }
   if (e.key === 'Tab') {
@@ -341,6 +465,7 @@ document.getElementById('sql-input').addEventListener('keydown', function(e) {
   }
 });
 
+/* ── Boot ─────────────────────────────────────────────────── */
 loadSchema();
 </script>
 </body>
