@@ -41,6 +41,8 @@
     .db-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
     select.db-select{font-size:12px;font-family:var(--sans);padding:4px 8px;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--radius);color:var(--text);cursor:pointer;outline:none;}
     select.db-select:focus{border-color:var(--green);}
+
+    .db-label{font-size:12px;color:var(--text2);}
     
     /* layout */
     .layout{display:flex;flex:1;overflow:hidden;}
@@ -117,6 +119,7 @@
     <span class="topbar-sub" id="course-label"></span>
     <div class="db-select-wrap">
       <div class="db-dot"></div>
+      <span class="db-label" id="t-db-label">Database</span>
       <select class="db-select" id="db-select" onchange="switchDatabase()"></select>
     </div>
     <div class="lang-switch">
@@ -218,7 +221,8 @@ var I18N = {
     results:      'Query',
     rows:         function(n){ return n + ' row' + (n !== 1 ? 's' : ''); },
     noResults:    'Query executed — no results returned.',
-    schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.'
+    schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.',
+    dbLabel: 'Database'
   },
   fr: {
     title:        'Éditeur SQL',
@@ -236,7 +240,8 @@ var I18N = {
     results:      'Requête',
     rows:         function(n){ return n + ' ligne' + (n !== 1 ? 's' : ''); },
     noResults:    'Requête exécutée — aucun résultat retourné.',
-    schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.'
+    schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.',
+    dbLabel: 'Base de données'
   }
 };
 
@@ -259,6 +264,7 @@ function applyLang() {
   document.getElementById('t-footer').innerHTML        = t('footer');
   document.getElementById('t-config').textContent      = t('config');
   document.getElementById('sql-input').placeholder     = t('placeholder');
+  document.getElementById('t-db-label').textContent = tr('dbLabel');
   document.title = t('title');
 
   var sl = document.getElementById('sidebar-loading');
