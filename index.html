@@ -37,6 +37,11 @@
     .lang-btn:hover{background:var(--surface2);}
     .lang-btn.active{background:var(--surface2);color:var(--text);font-weight:500;}
 
+    .db-select-wrap{display:flex;align-items:center;gap:6px;}
+    .db-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+    select.db-select{font-size:12px;font-family:var(--sans);padding:4px 8px;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--radius);color:var(--text);cursor:pointer;outline:none;}
+    select.db-select:focus{border-color:var(--green);}
+    
     /* layout */
     .layout{display:flex;flex:1;overflow:hidden;}
 
@@ -110,6 +115,10 @@
   <span class="topbar-title" id="t-title">SQL Editor</span>
   <div class="topbar-right">
     <span class="topbar-sub" id="course-label"></span>
+    <div class="db-select-wrap">
+      <div class="db-dot"></div>
+      <select class="db-select" id="db-select" onchange="switchDatabase()"></select>
+    </div>
     <div class="lang-switch">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('fr')">FR</button>
@@ -126,7 +135,7 @@
   <main class="main">
     <div class="config-banner" id="config-banner">
       <div class="config-dot"></div>
-      <span id="t-config">Replace SUPABASE_URL and ANON_KEY in the source code.</span>
+      <span id="t-config">Replace CURRENT_URL and CURRENT_KEY in the source code.</span>
     </div>
     <div class="label" id="t-query-label">SQL Query</div>
     <textarea id="sql-input" spellcheck="false" autocomplete="off"></textarea>
@@ -156,8 +165,38 @@ var DATABASES = {
   'Bikeshare':    { url: 'https://ujwueqekzsnigsmdasma.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd3VlcWVrenNuaWdzbWRhc21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDM5MTEsImV4cCI6MjA5MTIxOTkxMX0.OLQlqa0Q3JcIxmgTqw3I3ifTfMZc8lGJTPbiTCtZb98' },
   'Movies':       { url: 'https://CCC.supabase.co', key: '...' }
 };
+
+var CURRENT_URL = '';
+var CURRENT_KEY = '';
+
+function isConfigured(name) {
+  var db = DATABASES[name];
+  return db && db.url.indexOf('CCC') === -1 && db.key !== '...';
+}
+
+/* --- Menu for database selection --------- */
+function switchDatabase() {
+  var name = document.getElementById('db-select').value;
+  CURRENT_URL = DATABASES[name].url;
+  CURRENT_KEY = DATABASES[name].key;
+  clearAll();
+  loadSchema();
+}
+
+(function buildSelect() {
+  var sel = document.getElementById('db-select');
+  Object.keys(DATABASES).forEach(function(name) {
+    var opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name + (isConfigured(name) ? '' : ' (not configured)');
+    opt.disabled = !isConfigured(name);
+    sel.appendChild(opt);
+  });
+  var first = Object.keys(DATABASES).find(function(n){ return isConfigured(n); });
+  if (first) { sel.value = first; CURRENT_URL = DATABASES[first].url; CURRENT_KEY = DATABASES[first].key; }
+})();
+
 var COURSE_LABEL = 'Databases & SQL';
-var configured = (SUPABASE_URL.indexOf('VOTRE_ID') === -1 && ANON_KEY.indexOf('VOTRE_ANON_KEY') === -1);
 /* ═══════════════════════════════════════════════════════════ */
 
 /* ── i18n ─────────────────────────────────────────────────── */
@@ -168,7 +207,7 @@ var I18N = {
     tables:       'Tables',
     loading:      'Loading...',
     noTables:     'No tables found.',
-    config:       'Replace SUPABASE_URL and ANON_KEY in the source code.',
+    config:       'Replace CURRENT_URL and CURRENT_KEY in the source code.',
     configReq:    'Configuration required.',
     queryLabel:   'SQL Query',
     placeholder:  'SELECT * FROM customers LIMIT 10;',
@@ -186,7 +225,7 @@ var I18N = {
     tables:       'Tables',
     loading:      'Chargement...',
     noTables:     'Aucune table trouvée.',
-    config:       'Remplacer SUPABASE_URL et ANON_KEY dans le code source.',
+    config:       'Remplacer CURRENT_URL et CURRENT_KEY dans le code source.',
     configReq:    'Configuration requise.',
     queryLabel:   'Requête SQL',
     placeholder:  'SELECT * FROM customers LIMIT 10;',
@@ -227,7 +266,7 @@ function applyLang() {
 }
 
 /* ── Init ─────────────────────────────────────────────────── */
-var configured = (SUPABASE_URL.indexOf('VOTRE_ID') === -1 && ANON_KEY.indexOf('VOTRE_ANON_KEY') === -1);
+var configured = (CURRENT_URL.indexOf('VOTRE_ID') === -1 && CURRENT_KEY.indexOf('VOTRE_CURRENT_KEY') === -1);
 document.getElementById('course-label').textContent = COURSE_LABEL;
 if (configured) {
   document.getElementById('config-banner').style.display = 'none';
@@ -252,9 +291,9 @@ function shortType(t2) {
 
 /* ── RPC ──────────────────────────────────────────────────── */
 function rpc(query) {
-  return fetch(SUPABASE_URL + '/rest/v1/rpc/run_student_query', {
+  return fetch(CURRENT_URL + '/rest/v1/rpc/run_student_query', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','apikey':ANON_KEY,'Authorization':'Bearer '+ANON_KEY },
+    headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
     body: JSON.stringify({ query: query })
   }).then(function(res) {
     if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
@@ -270,9 +309,9 @@ function loadSchema() {
   loading.className = 'sidebar-msg';
   loading.style.display = 'block';
 
-  fetch(SUPABASE_URL + '/rest/v1/rpc/get_schema', {
+  fetch(CURRENT_URL + '/rest/v1/rpc/get_schema', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','apikey':ANON_KEY,'Authorization':'Bearer '+ANON_KEY },
+    headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
     body: JSON.stringify({})
   }).then(function(res) {
     if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
