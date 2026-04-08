@@ -592,7 +592,7 @@
   });
 
   /* ── Boot ─────────────────────────────────────────────── */
-  if (!SUPABASE_URL.includes('VOTRE_ID')) loadSchema();
+  if (!SUPABASE_URL.includes('VOTRE_ID')) window.addEventListener('load', loadSchema);
   else document.getElementById('sidebar-loading').textContent = 'Config. required.';
 </script>
 </body>
