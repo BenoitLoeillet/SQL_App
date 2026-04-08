@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Éditeur SQL — Cours de bases de données</title>
+  <title>SQL Editor — RDBMS course</title>
   <style>
     /* ── Configuration ──────────────────────────────────────── */
     :root {
@@ -301,9 +301,9 @@
     You have access here to multiple databases that are online and stored on a SUPABASE project. 
   </div>
 
-  <div class="label">Requête SQL</div>
+  <div class="label">SQL Query</div>
   <textarea id="sql-input"
-    placeholder="SELECT * FROM ma_table LIMIT 10;"
+    placeholder="SELECT * FROM Table LIMIT 10;"
     spellcheck="false"
     autocomplete="off"
     autocorrect="off"></textarea>
@@ -313,9 +313,9 @@
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
         <polygon points="2,1 11,6 2,11" fill="currentColor"/>
       </svg>
-      Exécuter
+      Execute / Run
     </button>
-    <button class="btn-clear" onclick="clearAll()">Effacer</button>
+    <button class="btn-clear" onclick="clearAll()">Delete</button>
     <span class="hint-time" id="hint-time"></span>
   </div>
 
@@ -337,14 +337,14 @@
   <div class="examples">
     <div class="label">Exemples rapides</div>
     <div class="example-chips">
-      <span class="chip" onclick="setQuery(this.textContent)">SELECT * FROM ma_table LIMIT 10</span>
-      <span class="chip" onclick="setQuery(this.textContent)">SELECT COUNT(*) FROM ma_table</span>
+      <span class="chip" onclick="setQuery(this.textContent)">SELECT * FROM Table LIMIT 10</span>
+      <span class="chip" onclick="setQuery(this.textContent)">SELECT COUNT(*) FROM Table</span>
       <span class="chip" onclick="setQuery(`SELECT table_name\nFROM information_schema.tables\nWHERE table_schema = 'public'\nORDER BY table_name`)">Lister les tables</span>
       <span class="chip" onclick="setQuery(`SELECT column_name, data_type\nFROM information_schema.columns\nWHERE table_schema = 'public'\nORDER BY table_name, ordinal_position`)">Voir les colonnes</span>
     </div>
   </div>
 
-  <div class="footer">Seules les requêtes SELECT sont autorisées &nbsp;·&nbsp; Ctrl + Entrée pour exécuter</div>
+  <div class="footer">Only SELECT queries can be executed here &nbsp;·&nbsp; Ctrl + Entry to run</div>
 
 </div>
 
