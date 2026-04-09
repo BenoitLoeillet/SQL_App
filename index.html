@@ -106,6 +106,10 @@
     td.null-val{color:var(--text3);font-style:italic;}
     td.num-val{font-family:var(--mono);font-size:12px;}
 
+    /* output section */
+    .output-section{margin-top:1.25rem;}
+    .sql-output{width:100%;min-height:60px;max-height:200px;font-family:var(--mono);font-size:12px;line-height:1.5;padding:13px 15px;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--radius);color:var(--text);overflow-x:auto;overflow-y:auto;white-space:pre-wrap;word-wrap:break-word;}
+
     .footer{font-size:11px;color:var(--text3);text-align:center;padding:12px;border-top:.5px solid var(--border);margin-top:auto;}
     @media(max-width:600px){.sidebar{display:none;}}
   </style>
@@ -154,6 +158,11 @@
     <div class="tabs-section" id="tabs-section">
       <div class="tabs-bar" id="tabs-bar"></div>
       <div id="tabs-content"></div>
+    </div>
+
+    <div class="output-section" id="output-section">
+      <div class="label" id="t-output-label">Executed SQL</div>
+      <pre id="sql-output" class="sql-output"></pre>
     </div>
 
     <div class="footer" id="t-footer">Only SELECT queries are allowed &nbsp;·&nbsp; Ctrl+Enter to run</div>
@@ -222,7 +231,8 @@ var I18N = {
     rows:         function(n){ return n + ' row' + (n !== 1 ? 's' : ''); },
     noResults:    'Query executed — no results returned.',
     schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.',
-    dbLabel: 'Database'
+    dbLabel: 'Database',
+    outputLabel:  'Executed SQL'
   },
   fr: {
     title:        'Éditeur SQL',
@@ -241,7 +251,8 @@ var I18N = {
     rows:         function(n){ return n + ' ligne' + (n !== 1 ? 's' : ''); },
     noResults:    'Requête exécutée — aucun résultat retourné.',
     schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.',
-    dbLabel: 'Base de données'
+    dbLabel: 'Base de données',
+    outputLabel:  'SQL exécuté'
   }
 };
 
@@ -264,8 +275,8 @@ function applyLang() {
   document.getElementById('t-footer').innerHTML        = t('footer');
   document.getElementById('t-config').textContent      = t('config');
   document.getElementById('sql-input').placeholder     = t('placeholder');
-  document.getElementById('t-db-label').textContent = tr('dbLabel');
-  document.title = t('title');
+  document.getElementById('t-db-label').textContent = t('dbLabel');
+  document.getElementById('t-output-label').textContent = t('outputLabel');  document.title = t('title');
 
   var sl = document.getElementById('sidebar-loading');
   if (sl.style.display !== 'none') sl.textContent = t('loading');
@@ -423,6 +434,9 @@ function runQuery() {
   tabsContent.innerHTML = '';
   document.getElementById('hint-time').textContent = '';
 
+  // Display the executed SQL
+  document.getElementById('sql-output').textContent = input;
+
   var t0 = performance.now();
   var chain = Promise.resolve();
   var panels = [];
@@ -496,6 +510,7 @@ function clearAll() {
   document.getElementById('tabs-bar').innerHTML = '';
   document.getElementById('tabs-content').innerHTML = '';
   document.getElementById('hint-time').textContent = '';
+  document.getElementById('sql-output').textContent = '';
   document.getElementById('sql-input').focus();
 }
 
