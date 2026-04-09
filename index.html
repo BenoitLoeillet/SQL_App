@@ -107,6 +107,14 @@
     td.num-val{font-family:var(--mono);font-size:12px;}
 
     .footer{font-size:11px;color:var(--text3);text-align:center;padding:12px;border-top:.5px solid var(--border);margin-top:auto;}
+    
+    /* page footer */
+    .page-footer{background:var(--surface);border-top:.5px solid var(--border);padding:16px 24px;font-size:11px;color:var(--text2);text-align:center;}
+    .page-footer a{color:var(--green);text-decoration:none;}
+    .page-footer a:hover{text-decoration:underline;}
+    .cc-logo{width:20px;height:20px;display:inline-block;vertical-align:middle;margin:0 4px;}
+    .footer-content{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
+    .footer-section{display:flex;align-items:center;gap:6px;}
     @media(max-width:600px){.sidebar{display:none;}}
   </style>
 </head>
@@ -159,6 +167,26 @@
     <div class="footer" id="t-footer">Only SELECT queries are allowed &nbsp;·&nbsp; Ctrl+Enter to run</div>
   </main>
 </div>
+
+<footer class="page-footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <span>Created by <strong>Benoît Loeillet</strong></span>
+    </div>
+    <div class="footer-section">
+      <span id="footer-year">2026</span>
+    </div>
+    <div class="footer-section">
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/" title="Creative Commons Attribution-ShareAlike 4.0 License" target="_blank">
+        <svg class="cc-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="31" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="32" y="40" font-size="24" font-weight="bold" text-anchor="middle" fill="currentColor">cc</text>
+        </svg>
+        <span>CC BY-SA 4.0</span>
+      </a>
+    </div>
+  </div>
+</footer>
 
 <script>
 /* ══ CONFIGURATION ═══════════════════════════════════════════
@@ -274,6 +302,7 @@ function applyLang() {
 /* ── Init ─────────────────────────────────────────────────── */
 var configured = (CURRENT_URL.indexOf('VOTRE_ID') === -1 && CURRENT_KEY.indexOf('VOTRE_CURRENT_KEY') === -1);
 document.getElementById('course-label').textContent = COURSE_LABEL;
+document.getElementById('footer-year').textContent = new Date().getFullYear();
 if (configured) {
   document.getElementById('config-banner').style.display = 'none';
 } else {
