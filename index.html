@@ -232,7 +232,7 @@ var I18N = {
     noResults:    'Query executed — no results returned.',
     schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.',
     dbLabel: 'Database',
-    outputLabel:  'Executed SQL'
+    outputLabel:  'Server Response'
   },
   fr: {
     title:        'Éditeur SQL',
@@ -252,7 +252,7 @@ var I18N = {
     noResults:    'Requête exécutée — aucun résultat retourné.',
     schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.',
     dbLabel: 'Base de données',
-    outputLabel:  'SQL exécuté'
+    outputLabel:  'Réponse du serveur'
   }
 };
 
@@ -440,14 +440,17 @@ function runQuery() {
   var t0 = performance.now();
   var chain = Promise.resolve();
   var panels = [];
+  var serverResponses = [];
 
   queries.forEach(function(query, index) {
     chain = chain.then(function() {
       return rpc(query).then(function(rows) {
         var arr = Array.isArray(rows) ? rows : [];
         panels.push({ index: index, arr: arr, error: null });
+        serverResponses.push({ query: query, response: rows, error: null });
       }).catch(function(e) {
         panels.push({ index: index, arr: [], error: e.message });
+        serverResponses.push({ query: query, response: null, error: e.message });
       });
     });
   });
@@ -498,6 +501,17 @@ function runQuery() {
     });
 
     tabsSection.style.display = 'block';
+
+    // Display server responses in JSON format
+    var outputContent = serverResponses.map(function(resp, idx) {
+      var header = 'Query ' + (idx + 1) + ': ' + resp.query;
+      var content = resp.error ? 
+        'Error: ' + resp.error : 
+        JSON.stringify(resp.response, null, 2);
+      return header + '\n' + content;
+    }).join('\n\n' + '='.repeat(50) + '\n\n');
+    
+    document.getElementById('sql-output').textContent = outputContent;
 
     btn.classList.remove('loading');
     btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill="currentColor"/></svg> <span id="t-run">'+t('run')+'</span>';
