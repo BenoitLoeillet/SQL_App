@@ -127,8 +127,8 @@
     <span class="topbar-sub" id="course-label"></span>
     <div class="db-select-wrap">
       <div class="db-dot"></div>
-      <span class="db-label" id="t-db-label">Database</span>
-      <select class="db-select" id="db-select" onchange="switchDatabase()"></select>
+      <span class="db-label" id="t-schema-label">Schema</span>
+      <select class="db-select" id="schema-select" onchange="switchSchema()"></select>
     </div>
     <div class="lang-switch">
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
@@ -192,44 +192,48 @@
 <script>
 /* ══ CONFIGURATION ═══════════════════════════════════════════
    Supabase → Settings → API                                  */
-var DATABASES = {
-  'Boutique':     { url: 'https://bzhuntwymdoceujuvyhi.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M' },
-  'Bikeshare':    { url: 'https://ujwueqekzsnigsmdasma.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd3VlcWVrenNuaWdzbWRhc21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDM5MTEsImV4cCI6MjA5MTIxOTkxMX0.OLQlqa0Q3JcIxmgTqw3I3ifTfMZc8lGJTPbiTCtZb98' },
-  'Movies':       { url: 'https://CCC.supabase.co', key: '...' }
+var DATABASE = {
+  url: 'https://bzhuntwymdoceujuvyhi.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M'
 };
 
-var CURRENT_URL = '';
-var CURRENT_KEY = '';
+var SCHEMAS = [
+  { label: 'boutique', value: 'boutique' },
+  { label: 'Bikeshare', value: 'bikeshare' },
+  { label: 'Movies', value: 'movies' }
+];
+
+var CURRENT_URL = DATABASE.url;
+var CURRENT_KEY = DATABASE.key;
+var CURRENT_SCHEMA = SCHEMAS[0].value;
 var latestResultPanels = [];
 
-function isConfigured(name) {
-  var db = DATABASES[name];
-  return db && db.url.indexOf('CCC') === -1 && db.key !== '...';
+function buildSchemaSelect(schemas) {
+  var sel = document.getElementById('schema-select');
+  sel.innerHTML = '';
+  schemas.forEach(function(item) {
+    var opt = document.createElement('option');
+    opt.value = item.value;
+    opt.textContent = item.label;
+    sel.appendChild(opt);
+  });
+  if (schemas.map(function(item){ return item.value; }).indexOf(CURRENT_SCHEMA) === -1) {
+    CURRENT_SCHEMA = schemas[0].value;
+  }
+  sel.value = CURRENT_SCHEMA;
 }
 
-/* --- Menu for database selection --------- */
-function switchDatabase() {
-  var name = document.getElementById('db-select').value;
-  CURRENT_URL = DATABASES[name].url;
-  CURRENT_KEY = DATABASES[name].key;
+function switchSchema() {
+  CURRENT_SCHEMA = document.getElementById('schema-select').value;
   clearAll();
   loadSchema();
 }
 
 (function buildSelect() {
-  var sel = document.getElementById('db-select');
-  Object.keys(DATABASES).forEach(function(name) {
-    var opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name + (isConfigured(name) ? '' : ' (not configured)');
-    opt.disabled = !isConfigured(name);
-    sel.appendChild(opt);
-  });
-  var first = Object.keys(DATABASES).find(function(n){ return isConfigured(n); });
-  if (first) { sel.value = first; CURRENT_URL = DATABASES[first].url; CURRENT_KEY = DATABASES[first].key; }
+  buildSchemaSelect(SCHEMAS);
 })();
 
-var COURSE_LABEL = 'Databases & SQL';
+var COURSE_LABEL = 'Schemas & SQL';
 /* ═══════════════════════════════════════════════════════════ */
 
 /* ── i18n ─────────────────────────────────────────────────── */
@@ -253,7 +257,7 @@ var I18N = {
     rows:         function(n){ return n + ' row' + (n !== 1 ? 's' : ''); },
     noResults:    'Query executed — no results returned.',
     schemaErr:    'Schema loading error. Make sure get_schema() function exists in Supabase.',
-    dbLabel: 'Database'
+    schemaLabel: 'Schema'
   },
   fr: {
     title:        'Éditeur SQL',
@@ -273,7 +277,7 @@ var I18N = {
     rows:         function(n){ return n + ' ligne' + (n !== 1 ? 's' : ''); },
     noResults:    'Requête exécutée — aucun résultat retourné.',
     schemaErr:    'Erreur de chargement du schéma. Vérifiez que la fonction get_schema() existe dans Supabase.',
-    dbLabel: 'Base de données'
+    schemaLabel: 'Schéma'
   }
 };
 
@@ -297,7 +301,7 @@ function applyLang() {
   document.getElementById('t-footer').innerHTML        = t('footer');
   document.getElementById('t-config').textContent      = t('config');
   document.getElementById('sql-input').placeholder     = t('placeholder');
-  document.getElementById('t-db-label').textContent = t('dbLabel');
+  document.getElementById('t-schema-label').textContent = t('schemaLabel');
   document.title = t('title');
 
   var sl = document.getElementById('sidebar-loading');
@@ -331,10 +335,23 @@ function shortType(t2) {
 
 /* ── RPC ──────────────────────────────────────────────────── */
 function rpc(query) {
+  var requestBody = { query: query };
+  if (CURRENT_SCHEMA && CURRENT_SCHEMA !== 'public') {
+    requestBody.schema = CURRENT_SCHEMA;
+  }
   return fetch(CURRENT_URL + '/rest/v1/rpc/run_student_query', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
-    body: JSON.stringify({ query: query })
+    body: JSON.stringify(requestBody)
+  }).then(function(res) {
+    if (!res.ok && requestBody.schema) {
+      return fetch(CURRENT_URL + '/rest/v1/rpc/run_student_query', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
+        body: JSON.stringify({ query: query })
+      });
+    }
+    return res;
   }).then(function(res) {
     if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
     return res.json();
@@ -349,10 +366,20 @@ function loadSchema() {
   loading.className = 'sidebar-msg';
   loading.style.display = 'block';
 
+  var schemaBody = (CURRENT_SCHEMA && CURRENT_SCHEMA !== 'public') ? { schema: CURRENT_SCHEMA } : {};
   fetch(CURRENT_URL + '/rest/v1/rpc/get_schema', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
-    body: JSON.stringify({})
+    body: JSON.stringify(schemaBody)
+  }).then(function(res) {
+    if (!res.ok && schemaBody.schema) {
+      return fetch(CURRENT_URL + '/rest/v1/rpc/get_schema', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
+        body: JSON.stringify({})
+      });
+    }
+    return res;
   }).then(function(res) {
     if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
     return res.json();
@@ -393,14 +420,15 @@ function loadSchema() {
 
       var quickBtn = document.createElement('button');
       quickBtn.className = 'btn-select-all';
-      quickBtn.textContent = 'SELECT * FROM ' + tname + ' LIMIT 10';
+      var qualifiedName = CURRENT_SCHEMA && CURRENT_SCHEMA !== 'public' ? CURRENT_SCHEMA + '.' + tname : tname;
+      quickBtn.textContent = 'SELECT * FROM ' + qualifiedName + ' LIMIT 10';
       (function(tn) {
         quickBtn.onclick = function(e) {
           e.stopPropagation();
           document.getElementById('sql-input').value = 'SELECT *\nFROM ' + tn + '\nLIMIT 10;';
           runQuery();
         };
-      })(tname);
+      })(qualifiedName);
       colsDiv.appendChild(quickBtn);
 
       cols.forEach(function(col) {
