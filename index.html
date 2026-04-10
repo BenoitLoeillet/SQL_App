@@ -335,28 +335,16 @@ function shortType(t2) {
 
 /* ── RPC ──────────────────────────────────────────────────── */
 function rpc(query) {
-  var requestBody = { query: query };
-  if (CURRENT_SCHEMA && CURRENT_SCHEMA !== 'public') {
-    requestBody.schema = CURRENT_SCHEMA;
-  }
   return fetch(CURRENT_URL + '/rest/v1/rpc/run_student_query', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
-    body: JSON.stringify(requestBody)
-  }).then(function(res) {
-    if (!res.ok && requestBody.schema) {
-      return fetch(CURRENT_URL + '/rest/v1/rpc/run_student_query', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json','apikey':CURRENT_KEY,'Authorization':'Bearer '+CURRENT_KEY },
-        body: JSON.stringify({ query: query })
-      });
-    }
-    return res;
+    body: JSON.stringify({ query: query, schema_name: CURRENT_SCHEMA })
   }).then(function(res) {
     if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(e){ throw new Error(e.message || 'HTTP '+res.status); });
     return res.json();
   });
 }
+
 
 /* ── Schema sidebar ───────────────────────────────────────── */
 function loadSchema(schema) {
