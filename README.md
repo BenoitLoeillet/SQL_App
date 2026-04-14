@@ -272,6 +272,7 @@ Please open an issue before submitting a pull request for significant changes.
 
 ## License
 
+Project developped by Benoit Loeillet, using Claude Code (Sonnet 4.6)
 This project is released under the [MIT License](LICENSE).
 
 ---
