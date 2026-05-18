@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Éditeur SQL — Cours de bases de données</title>
+  <style>
+    :root {
+      --bg:        #f7f6f3;
+      --surface:   #ffffff;
+      --surface2:  #f0efe9;
+      --border:    #e0ddd5;
+      --border2:   #c8c5bc;
+      --text:      #1a1917;
+      --text2:     #6b6860;
+      --text3:     #a8a59e;
+      --green:     #1D9E75;
+      --green-bg:  #e1f5ee;
+      --green-bd:  #5DCAA5;
+      --green-txt: #0F6E56;
+      --red-bg:    #fcebeb;
+      --red-bd:    #f09595;
+      --red-txt:   #a32d2d;
+      --amber:     #EF9F27;
+      --radius:    8px;
+      --radius-lg: 12px;
+      --mono:      'Courier New', Courier, monospace;
+      --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #1a1917;
+        --surface:   #232220;
+        --surface2:  #2c2b28;
+        --border:    #3a3835;
+        --border2:   #504e49;
+        --text:      #f0ede6;
+        --text2:     #a8a59e;
+        --text3:     #6b6860;
+        --green-bg:  #04342c;
+        --green-bd:  #0F6E56;
+        --green-txt: #9FE1CB;
+        --red-bg:    #2a0f0f;
+        --red-bd:    #7a2222;
+        --red-txt:   #f7c1c1;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+    }
+
+    .page { max-width: 1100px; margin: 0 auto; }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 10px; }
+
+    .header-icon {
+      width: 32px; height: 32px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-icon svg { display: block; }
+
+    .header-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .header-subtitle {
+      font-size: 0.75rem;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+
+    .lang-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lang-btn:hover { background: var(--border); color: var(--text); }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    @media (max-width: 680px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { order: 2; }
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text2);
+    }
+
+    .db-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .db-select:focus { border-color: var(--green); }
+
+    .sidebar-body { padding: 8px 0; max-height: 70vh; overflow-y: auto; }
+
+    .sidebar-msg {
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    .table-group { margin-bottom: 4px; }
+
+    .table-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .table-name:hover { background: var(--surface2); }
+
+    .table-name .arrow {
+      font-size: 0.6rem;
+      color: var(--text3);
+      transition: transform 0.15s;
+    }
+    .table-group.open .arrow { transform: rotate(90deg); }
+
+    .col-list { display: none; padding-bottom: 4px; }
+    .table-group.open .col-list { display: block; }
+
+    .col-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 2px 12px 2px 24px;
+      font-size: 0.72rem;
+    }
+
+    .col-name { color: var(--text2); }
+
+    .col-type {
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      color: var(--text3);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0 4px;
+    }
+
+    /* ── Main ────────────────────────────────────────────────── */
+    .main { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    /* ── Editor card ─────────────────────────────────────────── */
+    .editor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .toolbar-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      margin-right: 2px;
+    }
+
+    .schema-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .schema-select:focus { border-color: var(--green); }
+
+    .toolbar-spacer { flex: 1; }
+
+    .hint-time {
+      font-size: 0.72rem;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .btn-run {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-run:hover { opacity: 0.88; }
+    .btn-run.loading { opacity: 0.7; cursor: default; }
+
+    #sql-input {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--surface);
+      border: none;
+      outline: none;
+      resize: vertical;
+      tab-size: 2;
+    }
+
+    /* ── Status bar ──────────────────────────────────────────── */
+    .status-bar {
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+    .status-bar.hidden { display: none; }
+    .status-bar.success {
+      background: var(--green-bg);
+      border: 1px solid var(--green-bd);
+      color: var(--green-txt);
+    }
+    .status-bar.error {
+      background: var(--red-bg);
+      border: 1px solid var(--red-bd);
+      color: var(--red-txt);
+    }
+
+    /* ── Results ─────────────────────────────────────────────── */
+    .results-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .results-block { padding: 12px 14px 14px; border-bottom: 1px solid var(--border); }
+    .results-block:last-child { border-bottom: none; }
+
+    .results-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+
+    .results-count {
+      font-weight: 400;
+      color: var(--text3);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    th {
+      background: var(--surface2);
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .null-val { color: var(--text3); font-style: italic; }
+
+    /* ── Config warning ──────────────────────────────────────── */
+    .config-warning {
+      background: #fef9ec;
+      border: 1px solid #f5d97a;
+      color: #7a5c00;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 0.82rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      .config-warning { background: #2a2000; border-color: #6b4e00; color: #f5d97a; }
+    }
+
+    /* ── Pop-up programme ────────────────────────────────────── */
+    #program-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: opacity 0.2s;
+    }
+
+    #program-modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      width: 400px;
+      max-width: 92vw;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+    }
+
+    #program-modal-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--green-bg);
+      border: 1px solid var(--green-bd);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    #program-modal h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    #program-modal p {
+      font-size: 0.83rem;
+      color: var(--text2);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    .program-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 14px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .program-btn:last-child { margin-bottom: 0; }
+    .program-btn:hover {
+      border-color: var(--green-bd);
+      background: var(--green-bg);
+      color: var(--green-txt);
+    }
+
+    .program-btn-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .program-btn:hover .program-btn-dot { background: var(--green); }
+  </style>
+</head>
+<body>
+
+<!-- ── Pop-up sélection programme ──────────────────────────── -->
+<div id="program-overlay" role="dialog" aria-modal="true" aria-labelledby="program-modal-title">
+  <div id="program-modal">
+    <div id="program-modal-icon">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L2 6v2c0 5.5 3.3 9.7 8 11 4.7-1.3 8-5.5 8-11V6L10 2z"
+              stroke="#1D9E75" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+        <path d="M7 10l2 2 4-4" stroke="#1D9E75" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2 id="program-modal-title">Bienvenue sur SQL App</h2>
+    <p>Avant de commencer, merci d'indiquer votre programme. Cette information est utilisée à des fins statistiques.</p>
+
+    <button class="program-btn" onclick="selectProgram('BBA/GBBA')">
+      <span class="program-btn-dot"></span>
+      BBA / GBBA
+    </button>
+    <button class="program-btn" onclick="selectProgram('Master/MSc')">
+      <span class="program-btn-dot"></span>
+      Master / MSc
+    </button>
+    <button class="program-btn" onclick="selectProgram('PGE')">
+      <span class="program-btn-dot"></span>
+      Programme Grande École (PGE)
+    </button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="3" width="14" height="3" rx="1.5" fill="white" opacity="0.9"/>
+          <rect x="2" y="8" width="10" height="3" rx="1.5" fill="white" opacity="0.7"/>
+          <rect x="2" y="13" width="7" height="2" rx="1" fill="white" opacity="0.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title" id="course-label">Éditeur SQL</div>
+        <div class="header-subtitle" id="header-sub">Cours de bases de données relationnelles</div>
+      </div>
+    </div>
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+  </div>
+
+  <!-- Layout -->
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title" id="sidebar-title-label">Schéma</span>
+        <select class="db-select" id="db-select" onchange="onDbChange()">
+          <option value="boutique">boutique</option>
+          <option value="bikeshare">bikeshare</option>
+          <option value="movies">movies</option>
+        </select>
+      </div>
+      <div class="sidebar-body">
+        <div class="sidebar-msg" id="sidebar-loading">Chargement…</div>
+        <div id="schema-list"></div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- Config warning (hidden when configured) -->
+      <div class="config-warning" id="config-warning">
+        ⚠️ Configurez <code>SUPABASE_URL</code> et <code>ANON_KEY</code> dans le code source pour activer l'éditeur.
+      </div>
+
+      <!-- Editor card -->
+      <div class="editor-card">
+        <div class="editor-toolbar">
+          <span class="toolbar-label" id="lbl-schema">Base</span>
+          <select class="schema-select" id="schema-select" onchange="onSchemaChange()">
+            <option value="boutique">boutique</option>
+            <option value="bikeshare">bikeshare</option>
+            <option value="movies">movies</option>
+          </select>
+          <div class="toolbar-spacer"></div>
+          <span class="hint-time" id="hint-time"></span>
+          <button class="btn-run" id="btn-run" onclick="runQuery()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <polygon points="2,1 11,6 2,11" fill="currentColor"/>
+            </svg>
+            <span id="btn-label">Exécuter</span>
+          </button>
+        </div>
+        <textarea id="sql-input" spellcheck="false"
+          placeholder="-- Écrivez vos requêtes SQL ici
+-- Les commentaires (--) sont supportés
+-- Ctrl+Entrée pour exécuter
+
+SELECT *
+FROM customers
+LIMIT 10;"></textarea>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar hidden" id="status-bar"></div>
+
+      <!-- Results -->
+      <div class="results-section" id="results-section" style="display:none;"></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Configuration ──────────────────────────────────────── */
+
+  var SUPABASE_URL  = 'https://bzhuntwymdoceujuvyhi.supabase.co';
+  var ANON_KEY      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aHVudHd5bWRvY2V1anV2eWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY2MDcsImV4cCI6MjA5MTIxMjYwN30.t6lfthdVh3Yci9S_XJzLzqVPDgWHYCoPBqWnI2umd9M';
+  var COURSE_LABEL  = 'Éditeur SQL';
+
+  /* ──────────────────────────────────────────────────────────
+     NE PAS MODIFIER EN DESSOUS DE CETTE LIGNE
+  ──────────────────────────────────────────────────────────── */
+
+  var configured = !SUPABASE_URL.includes('VOTRE_ID');
+  var currentLang = 'fr';
+  var currentSchema = 'boutique';
+
+  /* ── Session anonyme & programme ───────────────────────── */
+  // SESSION_ID : réutilisé si déjà présent dans sessionStorage,
+  // sinon créé une fois et persisté — garantit que programme et
+  // ID de session restent associés même après rechargement de page.
+  var SESSION_ID   = sessionStorage.getItem('sql_app_session') || crypto.randomUUID();
+  var USER_PROGRAM = null;
+
+  // Si la page est rechargée dans le même onglet, on réutilise
+  // le programme déjà sélectionné et on supprime le pop-up
+  var _stored = sessionStorage.getItem('sql_app_program');
+  if (_stored) {
+    USER_PROGRAM = _stored;
+    sessionStorage.setItem('sql_app_session', SESSION_ID);
+    var _overlay = document.getElementById('program-overlay');
+    if (_overlay) _overlay.remove();
+  }
+
+  /* ── Sélection du programme (pop-up) ───────────────────── */
+  function selectProgram(program) {
+    USER_PROGRAM = program;
+    sessionStorage.setItem('sql_app_program', program);
+    sessionStorage.setItem('sql_app_session', SESSION_ID);
+
+    var overlay = document.getElementById('program-overlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(function() { overlay.remove(); }, 200);
+    }
+  }
+
+  /* ── Logging d'usage (fire-and-forget) ─────────────────── */
+  function logQueryEvent(query, success, rowCount, errorMsg) {
+    if (!configured) return;
+    fetch(SUPABASE_URL + '/rest/v1/rpc/log_query_event', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({
+        p_session_id: SESSION_ID,
+        p_program:    USER_PROGRAM,
+        p_database:   currentSchema,
+        p_query:      query,
+        p_success:    success,
+        p_row_count:  rowCount  !== undefined ? rowCount  : null,
+        p_error:      errorMsg  !== undefined ? errorMsg  : null
+      })
+    }).then(function() {}).catch(function() {});
+  }
+
+  /* ── i18n ──────────────────────────────────────────────── */
+  var i18n = {
+    fr: {
+      execute:      'Exécuter',
+      executing:    'Exécution…',
+      loading:      'Chargement…',
+      noTables:     'Aucune table trouvée.',
+      schema:       'Schéma',
+      base:         'Base',
+      rows:         function(n) { return n + ' ligne' + (n > 1 ? 's' : ''); },
+      query:        'Requête',
+      noRows:       'Requête exécutée — aucun résultat.',
+      subtitle:     'Cours de bases de données relationnelles',
+      placeholder:  '-- Écrivez vos requêtes SQL ici\n-- Les commentaires (--) sont supportés\n-- Ctrl+Entrée pour exécuter\n\nSELECT *\nFROM customers\nLIMIT 10;'
+    },
+    en: {
+      execute:      'Run',
+      executing:    'Running…',
+      loading:      'Loading…',
+      noTables:     'No tables found.',
+      schema:       'Schema',
+      base:         'Database',
+      rows:         function(n) { return n + ' row' + (n !== 1 ? 's' : ''); },
+      query:        'Query',
+      noRows:       'Query executed — no rows returned.',
+      subtitle:     'Relational Databases Course',
+      placeholder:  '-- Write your SQL queries here\n-- Comments (--) are supported\n-- Ctrl+Enter to run\n\nSELECT *\nFROM customers\nLIMIT 10;'
+    }
+  };
+
+  function t(key, arg) {
+    var val = i18n[currentLang][key];
+    return typeof val === 'function' ? val(arg) : val;
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === 'fr' ? 'en' : 'fr';
+    document.getElementById('lang-btn').textContent = currentLang === 'fr' ? 'EN' : 'FR';
+    document.getElementById('header-sub').textContent = t('subtitle');
+    document.getElementById('sidebar-title-label').textContent = t('schema');
+    document.getElementById('lbl-schema').textContent = t('base');
+    document.getElementById('btn-label').textContent = t('execute');
+    var loading = document.getElementById('sidebar-loading');
+    if (loading.style.display !== 'none') loading.textContent = t('loading');
+    document.getElementById('sql-input').placeholder = t('placeholder');
+  }
+
+  /* ── Schema / DB selectors ─────────────────────────────── */
+  function onSchemaChange() {
+    var sel = document.getElementById('schema-select').value;
+    document.getElementById('db-select').value = sel;
+    currentSchema = sel;
+    loadSchema();
+  }
+
+  function onDbChange() {
+    var sel = document.getElementById('db-select').value;
+    document.getElementById('schema-select').value = sel;
+    currentSchema = sel;
+    loadSchema();
+  }
+
+  /* ── RPC ───────────────────────────────────────────────── */
+  function rpc(query) {
+    return fetch(SUPABASE_URL + '/rest/v1/rpc/run_student_query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({ query: query, schema_name: currentSchema })
+    }).then(function(res) {
+      if (!res.ok) {
+        return res.json().catch(function() { return {}; }).then(function(e) {
+          throw new Error(e.message || e.hint || 'HTTP ' + res.status);
+        });
+      }
+      return res.json();
+    });
+  }
+
+  /* ── Schema sidebar ────────────────────────────────────── */
+  function loadSchema() {
+    if (!configured) return;
+    var loading = document.getElementById('sidebar-loading');
+    loading.textContent = t('loading');
+    loading.style.display = 'block';
+    document.getElementById('schema-list').innerHTML = '';
+
+    fetch(SUPABASE_URL + '/rest/v1/rpc/get_schema', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({ schema: currentSchema })
+    }).then(function(res) {
+      if (!res.ok) return res.json().catch(function() { return {}; }).then(function(e) {
+        throw new Error(e.message || 'HTTP ' + res.status);
+      });
+      return res.json();
+    }).then(function(rows) {
+      loading.style.display = 'none';
+      var tables = {};
+      (rows || []).forEach(function(r) {
+        if (!tables[r.table_name]) tables[r.table_name] = [];
+        tables[r.table_name].push({ name: r.column_name, type: r.data_type });
+      });
+
+      var list = document.getElementById('schema-list');
+      list.innerHTML = '';
+
+      if (Object.keys(tables).length === 0) {
+        loading.textContent = t('noTables');
+        loading.style.display = 'block';
+        return;
+      }
+
+      Object.keys(tables).sort().forEach(function(tname) {
+        var group = document.createElement('div');
+        group.className = 'table-group';
+
+        var header = document.createElement('div');
+        header.className = 'table-name';
+        header.innerHTML = '<span class="arrow">▶</span>' + escapeHtml(tname);
+        header.addEventListener('click', function() {
+          group.classList.toggle('open');
+        });
+        group.appendChild(header);
+
+        var colList = document.createElement('div');
+        colList.className = 'col-list';
+        tables[tname].forEach(function(col) {
+          var item = document.createElement('div');
+          item.className = 'col-item';
+          item.innerHTML =
+            '<span class="col-name">' + escapeHtml(col.name) + '</span>' +
+            '<span class="col-type">' + shortType(col.type) + '</span>';
+          colList.appendChild(item);
+        });
+        group.appendChild(colList);
+        list.appendChild(group);
+      });
+    }).catch(function(err) {
+      loading.textContent = 'Erreur : ' + err.message;
+      loading.style.display = 'block';
+    });
+  }
+
+  /* ── SQL comment-aware splitter ────────────────────────── */
+  function splitSQL(input) {
+    var queries = [];
+    var current = '';
+    var i = 0;
+
+    while (i < input.length) {
+      // Commentaire sur une ligne : lire jusqu'à la fin de ligne sans traiter ";"
+      if (input[i] === '-' && i + 1 < input.length && input[i + 1] === '-') {
+        while (i < input.length && input[i] !== '\n') {
+          current += input[i];
+          i++;
+        }
+      }
+      // Séparateur de requête
+      else if (input[i] === ';') {
+        var trimmed = current.trim();
+        if (trimmed.length > 0) queries.push(trimmed);
+        current = '';
+        i++;
+      }
+      else {
+        current += input[i];
+        i++;
+      }
+    }
+
+    // Dernière requête sans ";" final
+    var trimmed = current.trim();
+    if (trimmed.length > 0) queries.push(trimmed);
+
+    return queries;
+  }
+
+  /* ── Run query ─────────────────────────────────────────── */
+  function runQuery() {
+    if (!configured) return;
+
+    var input = document.getElementById('sql-input').value;
+    var queries = splitSQL(input);
+
+    if (queries.length === 0) return;
+
+    var btn = document.getElementById('btn-run');
+    btn.classList.add('loading');
+    btn.innerHTML =
+      '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4"' +
+      ' stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="16"' +
+      ' stroke-dashoffset="8"><animateTransform attributeName="transform" type="rotate"' +
+      ' from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> ' +
+      t('executing');
+
+    var statusBar = document.getElementById('status-bar');
+    statusBar.className = 'status-bar hidden';
+
+    var resultsSection = document.getElementById('results-section');
+    resultsSection.style.display = 'none';
+    resultsSection.innerHTML = '';
+
+    document.getElementById('hint-time').textContent = '';
+
+    var t0 = performance.now();
+
+    var chain = Promise.resolve();
+
+    queries.forEach(function(query, index) {
+      chain = chain.then(function() {
+        return rpc(query).then(function(rows) {
+          var arr = Array.isArray(rows) ? rows : [];
+
+          // ── Log succès ──────────────────────────────────
+          logQueryEvent(query, true, arr.length, null);
+
+          var block = document.createElement('div');
+          block.className = 'results-block';
+
+          var label = document.createElement('div');
+          label.className = 'results-label';
+          if (queries.length > 1) {
+            label.innerHTML = t('query') + ' ' + (index + 1) +
+              ' <span class="results-count">— ' + t('rows', arr.length) + '</span>';
+          } else {
+            label.innerHTML = '<span class="results-count">' + t('rows', arr.length) + '</span>';
+          }
+          block.appendChild(label);
+
+          if (arr.length === 0) {
+            var msg = document.createElement('div');
+            msg.className = 'status-bar success';
+            msg.style.marginTop = '0';
+            msg.textContent = t('noRows');
+            block.appendChild(msg);
+          } else {
+            block.appendChild(renderTable(arr));
+          }
+
+          resultsSection.appendChild(block);
+          resultsSection.style.display = 'block';
+
+        }).catch(function(err) {
+          // ── Log échec ───────────────────────────────────
+          logQueryEvent(query, false, null, err.message);
+
+          var errBlock = document.createElement('div');
+          errBlock.className = 'results-block';
+
+          if (queries.length > 1) {
+            var label = document.createElement('div');
+            label.className = 'results-label';
+            label.textContent = t('query') + ' ' + (index + 1);
+            errBlock.appendChild(label);
+          }
+
+          var errMsg = document.createElement('div');
+          errMsg.className = 'status-bar error';
+          errMsg.style.marginTop = '0';
+          errMsg.textContent = err.message;
+          errBlock.appendChild(errMsg);
+
+          resultsSection.appendChild(errBlock);
+          resultsSection.style.display = 'block';
+        });
+      });
+    });
+
+    chain.finally(function() {
+      var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      document.getElementById('hint-time').textContent = elapsed + 's';
+
+      btn.classList.remove('loading');
+      btn.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">' +
+        '<polygon points="2,1 11,6 2,11" fill="currentColor"/></svg> ' +
+        '<span id="btn-label">' + t('execute') + '</span>';
+    });
+  }
+
+  /* ── Render table ──────────────────────────────────────── */
+  function renderTable(rows) {
+    var keys = Object.keys(rows[0]);
+    var wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+
+    var table = document.createElement('table');
+
+    var thead = document.createElement('thead');
+    var headRow = document.createElement('tr');
+    keys.forEach(function(k) {
+      var th = document.createElement('th');
+      th.textContent = k;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    rows.forEach(function(row) {
+      var tr = document.createElement('tr');
+      keys.forEach(function(k) {
+        var td = document.createElement('td');
+        var v = row[k];
+        if (v === null || v === undefined) {
+          td.className = 'null-val';
+          td.textContent = 'null';
+        } else if (typeof v === 'object') {
+          td.textContent = JSON.stringify(v);
+        } else {
+          td.textContent = String(v);
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  /* ── Helpers ───────────────────────────────────────────── */
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function shortType(t2) {
+    var m = {
+      'character varying': 'varchar',
+      'character':         'char',
+      'integer':           'int',
+      'bigint':            'bigint',
+      'smallint':          'smallint',
+      'numeric':           'numeric',
+      'real':              'real',
+      'double precision':  'float8',
+      'boolean':           'bool',
+      'text':              'text',
+      'date':              'date',
+      'timestamp without time zone': 'timestamp',
+      'timestamp with time zone':    'timestamptz',
+      'uuid':              'uuid',
+      'json':              'json',
+      'jsonb':             'jsonb'
+    };
+    return m[t2] || t2.split(' ')[0].substring(0, 8);
+  }
+
+  /* ── Tab key in textarea ───────────────────────────────── */
+  document.getElementById('sql-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      var el = e.target;
+      var start = el.selectionStart;
+      var end = el.selectionEnd;
+      el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
+      el.selectionStart = el.selectionEnd = start + 2;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runQuery();
+    }
+  });
+
+  /* ── Init ──────────────────────────────────────────────── */
+  document.getElementById('course-label').textContent = COURSE_LABEL;
+
+  if (!configured) {
+    document.getElementById('config-warning').style.display = 'block';
+    document.getElementById('sidebar-loading').textContent = 'Non configuré.';
+    document.getElementById('btn-run').disabled = true;
+    document.getElementById('btn-run').style.opacity = '0.4';
+  } else {
+    document.getElementById('config-warning').style.display = 'none';
+    loadSchema();
+  }
+</script>
+</body>
+</html>
