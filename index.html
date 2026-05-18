@@ -900,7 +900,7 @@ LIMIT 10;"></textarea>
       }
       else if (input[i] === ';') {
         var trimmed = current.trim();
-        if (trimmed.length > 0 && !isOnlyComments(trimmed)) queries.push(trimmed);
+        if (trimmed.length > 0) queries.push(trimmed);
         current = '';
         i++;
       }
@@ -911,7 +911,7 @@ LIMIT 10;"></textarea>
     }
   
     var trimmed = current.trim();
-    if (trimmed.length > 0 && !isOnlyComments(trimmed)) queries.push(trimmed);
+    if (trimmed.length > 0) queries.push(trimmed);
   
     return queries;
   }
