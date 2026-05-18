@@ -890,19 +890,19 @@ LIMIT 10;"></textarea>
     var queries = [];
     var current = '';
     var i = 0;
-
+  
     while (i < input.length) {
-      // Commentaire sur une ligne : lire jusqu'à la fin de ligne sans traiter ";"
+      // Ligne de commentaire : on la copie telle quelle mais on ignore son ";"
       if (input[i] === '-' && i + 1 < input.length && input[i + 1] === '-') {
         while (i < input.length && input[i] !== '\n') {
           current += input[i];
           i++;
         }
       }
-      // Séparateur de requête
+      // Séparateur de requête — seulement hors commentaire
       else if (input[i] === ';') {
         var trimmed = current.trim();
-        if (trimmed.length > 0) queries.push(trimmed);
+        if (trimmed.length > 0 && !isOnlyComments(trimmed)) queries.push(trimmed);
         current = '';
         i++;
       }
@@ -911,12 +911,18 @@ LIMIT 10;"></textarea>
         i++;
       }
     }
-
+  
     // Dernière requête sans ";" final
     var trimmed = current.trim();
-    if (trimmed.length > 0) queries.push(trimmed);
-
+    if (trimmed.length > 0 && !isOnlyComments(trimmed)) queries.push(trimmed);
+  
     return queries;
+  }
+  
+  function isOnlyComments(sql) {
+    return sql.split('\n').every(function(line) {
+      return line.trim() === '' || line.trim().indexOf('--') === 0;
+    });
   }
   
   /* ── Data extracted to CSV ─────────────────────────────────────────── */
