@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mentions légales — Éditeur SQL</title>
+  <style>
+    :root {
+      --bg:        #f7f6f3;
+      --surface:   #ffffff;
+      --surface2:  #f0efe9;
+      --border:    #e0ddd5;
+      --border2:   #c8c5bc;
+      --text:      #1a1917;
+      --text2:     #6b6860;
+      --text3:     #a8a59e;
+      --green:     #1D9E75;
+      --green-bg:  #e1f5ee;
+      --green-bd:  #5DCAA5;
+      --green-txt: #0F6E56;
+      --radius:    8px;
+      --radius-lg: 12px;
+      --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:      'Courier New', Courier, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #1a1917;
+        --surface:   #232220;
+        --surface2:  #2c2b28;
+        --border:    #3a3835;
+        --border2:   #504e49;
+        --text:      #f0ede6;
+        --text2:     #a8a59e;
+        --text3:     #6b6860;
+        --green-bg:  #04342c;
+        --green-bd:  #0F6E56;
+        --green-txt: #9FE1CB;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .page { max-width: 760px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-block;
+      font-size: 0.78rem;
+      color: var(--text2);
+      text-decoration: none;
+      margin-bottom: 1.25rem;
+    }
+    .back-link:hover { color: var(--green-txt); text-decoration: underline; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-icon {
+      width: 32px; height: 32px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .header-subtitle {
+      font-size: 0.75rem;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    h2 .num {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--green-txt);
+      background: var(--green-bg);
+      border-radius: 5px;
+      padding: 1px 6px;
+    }
+
+    p, li {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--text2);
+    }
+
+    p + p { margin-top: 0.6rem; }
+
+    ul { margin: 0.5rem 0 0.5rem 1.1rem; }
+    li { margin-bottom: 0.35rem; }
+    li strong { color: var(--text); font-weight: 600; }
+
+    .badge-anon {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--green-txt);
+      background: var(--green-bg);
+      border: 1px solid var(--green-bd);
+      border-radius: 999px;
+      padding: 3px 10px;
+      margin-bottom: 0.7rem;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .note {
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-top: 0.6rem;
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 1.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text3);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <a class="back-link" href="index.html">&larr; Retour à l'éditeur SQL</a>
+
+    <div class="header">
+      <div class="header-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="3" width="14" height="3" rx="1.5" fill="white" opacity="0.9"/>
+          <rect x="2" y="8" width="10" height="3" rx="1.5" fill="white" opacity="0.7"/>
+          <rect x="2" y="13" width="7" height="2" rx="1" fill="white" opacity="0.5"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Mentions légales</h1>
+        <div class="header-subtitle">Éditeur SQL — Cours de bases de données</div>
+      </div>
+    </div>
+
+    <section>
+      <h2><span class="num">1</span> Éditeur du site</h2>
+      <p>
+        Cette application (« SQL App ») est un outil pédagogique mis à disposition des étudiants
+        dans le cadre d'un cours de bases de données relationnelles / SQL à emlyon business school.
+      </p>
+      <p>
+        Éditeur&nbsp;: Benoit Loeillet — Contact&nbsp;: <a href="mailto:benoit.loeillet@gmail.com" style="color:var(--text2)">benoit.loeillet@gmail.com</a>
+      </p>
+      <p class="note">À adapter si nécessaire (nom de l'établissement, service ou intervenant responsable).</p>
+    </section>
+
+    <section>
+      <span class="badge-anon">
+        <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L2 6v2c0 5.5 3.3 9.7 8 11 4.7-1.3 8-5.5 8-11V6L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+          <path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Collecte anonyme — aucune inscription, aucun nom, aucun e-mail requis
+      </span>
+      <h2><span class="num">2</span> Données collectées</h2>
+      <p>
+        SQL App ne demande ni compte, ni identifiant, ni adresse e-mail pour être utilisée.
+        Les seules informations enregistrées lors de l'utilisation de l'outil sont&nbsp;:
+      </p>
+      <ul>
+        <li><strong>Un identifiant de session anonyme</strong> — un code généré aléatoirement par le
+          navigateur (UUID) à l'ouverture de la page. Il n'est ni un nom, ni un e-mail, ni un identifiant
+          étudiant&nbsp;: il sert uniquement à regrouper les requêtes d'une même session de travail. Il est
+          stocké dans le <code>sessionStorage</code> du navigateur et disparaît automatiquement à la
+          fermeture de l'onglet.</li>
+        <li><strong>Le programme d'études déclaré</strong> (BBA/GBBA, Master/MSc ou PGE), indiqué
+          librement lors du premier accès, à des fins statistiques uniquement.</li>
+        <li><strong>Les requêtes SQL exécutées</strong>&nbsp;: le texte de la requête, la base de données
+          utilisée, le résultat (succès/erreur), le nombre de lignes retournées et, le cas échéant, le
+          message d'erreur.</li>
+      </ul>
+      <p>
+        Aucun nom, prénom, adresse e-mail, numéro étudiant ou autre identifiant personnel n'est demandé
+        ni enregistré par l'application.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="num">3</span> Finalité de la collecte</h2>
+      <p>
+        Ces données sont collectées exclusivement à des fins pédagogiques et statistiques&nbsp;: suivre
+        l'usage de l'outil au fil du cours, identifier les erreurs SQL les plus fréquentes afin d'améliorer
+        le support pédagogique, et s'assurer du bon fonctionnement du service.
+      </p>
+      <p>
+        Elles ne sont ni utilisées à des fins commerciales, ni cédées, vendues ou partagées avec des tiers,
+        et ne servent à aucune notation individuelle des étudiants.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="num">4</span> Caractère anonyme de la collecte</h2>
+      <p>
+        La collecte est conçue pour être anonyme dès l'origine (« anonymisation par construction »)&nbsp;:
+      </p>
+      <ul>
+        <li>Aucune authentification n'est requise pour utiliser l'application.</li>
+        <li>L'identifiant de session est un code aléatoire, non rattaché à une identité, régénéré à
+          chaque nouvelle session de navigation.</li>
+        <li>Le programme d'études est une catégorie générale (BBA/GBBA, Master/MSc, PGE), non individualisante.</li>
+        <li>Aucun recoupement n'est effectué entre les requêtes enregistrées et l'identité d'un étudiant.</li>
+      </ul>
+      <p class="note">
+        Comme pour tout service web, l'hébergeur technique (infrastructure réseau et base de données)
+        peut traiter, au niveau technique, des métadonnées de connexion standard (par exemple une adresse IP)
+        dans le cadre normal du fonctionnement d'Internet — ces informations ne sont ni exploitées, ni
+        conservées par SQL App elle-même.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="num">5</span> Durée de conservation</h2>
+      <p>
+        Les données de session sont conservées le temps du cours / de l'année académique concernée, à des
+        fins d'analyse pédagogique, puis supprimées ou archivées de façon anonyme.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="num">6</span> Vos droits</h2>
+      <p>
+        Dans la mesure où aucune donnée personnelle identifiable n'est collectée, les demandes d'accès,
+        de rectification ou de suppression visant une personne précise ne peuvent pas être traitées
+        individuellement (les enregistrements ne pouvant être rattachés à une identité).
+      </p>
+      <p>
+        Pour toute question relative à cette collecte de données ou à cet outil, vous pouvez contacter
+        <a href="mailto:benoit.loeillet@gmail.com" style="color:var(--text2)">benoit.loeillet@gmail.com</a>.
+      </p>
+    </section>
+
+    <div class="footer">SQL App — Outil pédagogique interne</div>
+
+  </div>
+</body>
+</html>

@@ -59,6 +59,25 @@
 
     .page { max-width: 1100px; margin: 0 auto; }
 
+    /* ── Footer ─────────────────────────────────────────────── */
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-link {
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-decoration: none;
+    }
+
+    .footer-link:hover {
+      color: var(--text2);
+      text-decoration: underline;
+    }
+
     /* ── Header ─────────────────────────────────────────────── */
     .header {
       display: flex;
@@ -638,6 +657,12 @@ LIMIT 10;"></textarea>
 
     </div>
   </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a class="footer-link" href="mentions-legales.html" id="footer-legal-link" target="_blank" rel="noopener">Mentions légales</a>
+  </div>
+
 </div>
 
 <script>
@@ -742,6 +767,7 @@ LIMIT 10;"></textarea>
       query:        'Requête',
       noRows:       'Requête exécutée — aucun résultat.',
       subtitle:     'Cours de bases de données relationnelles',
+      legalLink:    'Mentions légales',
       placeholder:  '-- Écrivez vos requêtes SQL ici\n-- Les commentaires (--) sont supportés\n-- Ctrl+Entrée pour exécuter\n\nSELECT *\nFROM customers\nLIMIT 10;',
       langLabel: 'Sélectionner la langue',
       csvBtn:    'Télécharger CSV'
@@ -757,6 +783,7 @@ LIMIT 10;"></textarea>
       query:        'Query',
       noRows:       'Query executed — no rows returned.',
       subtitle:     'Relational Databases Course',
+      legalLink:    'Legal notice',
       placeholder:  '-- Write your SQL queries here\n-- Comments (--) are supported\n-- Ctrl+Enter to run\n\nSELECT *\nFROM customers\nLIMIT 10;',
       langLabel: 'Select language',
       csvBtn:    'Download CSV'
@@ -779,6 +806,7 @@ LIMIT 10;"></textarea>
     var loading = document.getElementById('sidebar-loading');
     if (loading.style.display !== 'none') loading.textContent = t('loading');
     document.getElementById('sql-input').placeholder = t('placeholder');
+    document.getElementById('footer-legal-link').textContent = t('legalLink');
   }
 
   /* ── Schema / DB selectors ─────────────────────────────── */
