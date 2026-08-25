@@ -661,6 +661,7 @@ LIMIT 10;"></textarea>
   <!-- Footer -->
   <div class="footer">
     <a class="footer-link" href="mentions-legales.html" id="footer-legal-link" target="_blank" rel="noopener">Mentions légales</a>
+    <!-- href updated by toggleLang() to point to legal-notice.html when language is English -->
   </div>
 
 </div>
@@ -768,6 +769,7 @@ LIMIT 10;"></textarea>
       noRows:       'Requête exécutée — aucun résultat.',
       subtitle:     'Cours de bases de données relationnelles',
       legalLink:    'Mentions légales',
+      legalHref:    'mentions-legales.html',
       placeholder:  '-- Écrivez vos requêtes SQL ici\n-- Les commentaires (--) sont supportés\n-- Ctrl+Entrée pour exécuter\n\nSELECT *\nFROM customers\nLIMIT 10;',
       langLabel: 'Sélectionner la langue',
       csvBtn:    'Télécharger CSV'
@@ -784,6 +786,7 @@ LIMIT 10;"></textarea>
       noRows:       'Query executed — no rows returned.',
       subtitle:     'Relational Databases Course',
       legalLink:    'Legal notice',
+      legalHref:    'legal-notice.html',
       placeholder:  '-- Write your SQL queries here\n-- Comments (--) are supported\n-- Ctrl+Enter to run\n\nSELECT *\nFROM customers\nLIMIT 10;',
       langLabel: 'Select language',
       csvBtn:    'Download CSV'
@@ -807,6 +810,7 @@ LIMIT 10;"></textarea>
     if (loading.style.display !== 'none') loading.textContent = t('loading');
     document.getElementById('sql-input').placeholder = t('placeholder');
     document.getElementById('footer-legal-link').textContent = t('legalLink');
+    document.getElementById('footer-legal-link').href = t('legalHref');
   }
 
   /* ── Schema / DB selectors ─────────────────────────────── */
